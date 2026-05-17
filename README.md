@@ -7,8 +7,8 @@ A modern, full-stack note-taking application powered by AI. Peblo enables users 
 ## Project Overview
 Peblo is an AI-powered notes workspace designed to help users capture, organize, and analyze their thoughts efficiently. With features like smart note suggestions, analytics, and secure cloud storage, Peblo is perfect for students, professionals, and teams.
 
-Frontend Link :- https://peblo-chi.vercel.app/
-Backend Link :- https://peblo-wtna.onrender.com/
+Frontend Link :- https://client-gilt-sigma-21.vercel.app
+Backend Link :- https://server-eta-snowy.vercel.app
 
 ---
 
