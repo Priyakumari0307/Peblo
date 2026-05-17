@@ -1,0 +1,91 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Rebello",
+      "email": "rebel@peblo.co",
+      "password": "$2b$10$d2sLSn3iR2qh9AG/WGDXguLkrZ8eVYLgP3aqo6FDl.NyucveAGAwG",
+      "avatar": null,
+      "bio": "Quiet rebel. Lead software designer. Built Peblo from scratch.",
+      "job_title": "Principal Architect",
+      "created_at": "2026-05-17T13:45:27.021Z",
+      "updated_at": "2026-05-17T13:50:32.269Z"
+    },
+    {
+      "id": 2,
+      "name": "UserME",
+      "email": "arijeetbanerjee79@gmail.com",
+      "password": "$2b$10$J5zLRNb95NP1Acm6vCJCY.Qj3BuIVhlg2G/dxeuKM1v9Bm8.addqq",
+      "avatar": null,
+      "bio": "",
+      "job_title": "",
+      "created_at": "2026-05-17T13:56:22.552Z",
+      "updated_at": "2026-05-17T13:56:22.552Z"
+    }
+  ],
+  "notes": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "title": "Productivity Launchpad",
+      "content": "This is a test note for our brand new AI-powered workspace Peblo. Today we are going to explore how modern generative AI models like xAI's Grok can help us structure our thoughts. Here are the main goals for today: 1. Complete registration and local fallback testing. 2. Verify Grok API connectivity. 3. Test title generation, action items extraction, and summarization. 4. Ensure profile settings work seamlessly. Let's see if the AI can extract these action items properly.",
+      "tags": [
+        "ai",
+        "tutorial"
+      ],
+      "category": "General",
+      "summary": "This note introduces the new AI-powered workspace Peblo and explores how generative AI models like xAI's Grok can help structure thoughts. The main goals for today include completing registration and local fallback testing, verifying Grok API connectivity, testing title generation, action items extraction, and summarization, and ensuring profile settings work seamlessly. The primary objective is to assess the AI's capability to extract action items properly.",
+      "action_items": [
+        "Complete registration and local fallback testing",
+        "Verify Grok API connectivity",
+        "Test title generation, action items extraction, and summarization",
+        "Ensure profile settings work seamlessly"
+      ],
+      "suggested_title": "",
+      "is_archived": false,
+      "is_public": false,
+      "share_id": "06df07e2-9d07-4e04-8572-db4575af0b75",
+      "ai_usage_count": 3,
+      "created_at": "2026-05-17T13:46:10.611Z",
+      "updated_at": "2026-05-17T14:01:49.474Z"
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "title": "Hello World",
+      "content": "The OED, the principal historical dictionary of the English language, defines a 'car' in its online dictionary as: 'a road vehicle powered by a motor (usually an internal combustion engine) designed to carry a driver and a small number of passengers, and usually having two front and two rear wheels, esp.",
+      "tags": [
+        "Ai"
+      ],
+      "category": "General",
+      "summary": "",
+      "action_items": [
+        "Could not extract action items correctly."
+      ],
+      "suggested_title": "",
+      "is_archived": true,
+      "is_public": false,
+      "share_id": "107df1ff-340f-43d9-be1f-2b8d28221eed",
+      "ai_usage_count": 1,
+      "created_at": "2026-05-17T13:56:38.089Z",
+      "updated_at": "2026-05-17T13:57:13.347Z"
+    },
+    {
+      "id": 3,
+      "user_id": 2,
+      "title": "Ai productivity",
+      "content": "Artificial Intelligence (AI) in AI Mode (such as Google’s search feature) is a system that simulates human cognitive abilities—like learning, reasoning, and problem-solving—to process complex, multi-part queries and synthesize clear, conversational answers rather than just presenting traditional links. How AI Mode Works Instead of simply matching keywords, AI Mode acts as a research engine utilizing specific technologies to understand your intent: Query Fan-Out: The system breaks down your question into various subtopics and issues multiple queries simultaneously on your behalf. Semantic Understanding: It relies on advanced natural language processing to comprehend the exact context of what you are asking. Information Synthesis: The AI retrieves data from across the web, reasons across multiple sources, and formats them into a single, intuitive response.",
+      "tags": [],
+      "category": "General",
+      "summary": "AI in AI Mode simulates human cognitive abilities to process complex, multi-part queries and synthesize clear, conversational answers rather than just presenting traditional links. Functioning as a research engine, it utilizes Query Fan-Out to break down questions into subtopics and issue multiple queries, Semantic Understanding through advanced natural language processing to comprehend exact context, and Information Synthesis to retrieve, reason across, and format data from diverse web sources into a single, intuitive response.",
+      "action_items": [],
+      "suggested_title": "AI Mode Explained",
+      "is_archived": false,
+      "is_public": false,
+      "share_id": "3d81908e-712a-4844-a339-9b86f5e3880a",
+      "ai_usage_count": 3,
+      "created_at": "2026-05-17T13:58:04.741Z",
+      "updated_at": "2026-05-17T14:03:26.343Z"
+    }
+  ]
+}
