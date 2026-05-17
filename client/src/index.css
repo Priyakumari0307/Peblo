@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--primary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  
+  --font-display: "Instrument Serif", serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 210 40% 98%; /* Soft Off-White */
+    --foreground: 222 47% 11%; /* Deep Navy/Charcoal */
+    --muted-foreground: 215 16% 47%;
+    --primary: 222 47% 11%; /* Use Navy as primary in light mode */
+    --primary-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+  }
+
+  .dark {
+    --background: 222 47% 11%; /* Deep Navy */
+    --foreground: 210 40% 98%; /* Soft Off-White */
+    --muted-foreground: 215 20% 65%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
+    --border: 217 33% 17%;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    margin: 0;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer components {
+  .primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-weight: 700;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  }
+
+  .dark .glass {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: none;
+  }
+
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
+      rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+      rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Inputs in light and dark mode */
+  input, select, textarea {
+    @apply bg-background border-border text-foreground placeholder:text-muted-foreground/50;
+  }
+
+  /* Light mode: tell browser to render native form controls in light style */
+  select {
+    color-scheme: light;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* Dark mode: tell browser to render native form controls in dark style */
+  .dark select {
+    color-scheme: dark;
+    background-color: hsl(222, 47%, 14%);
+    color: hsl(210, 40%, 98%);
+  }
+
+  /* Option elements - explicit colors for cross-browser support */
+  select option {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  .dark select option {
+    background-color: hsl(222, 47%, 14%);
+    color: hsl(210, 40%, 98%);
+  }
+}
+
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-rise { animation: fade-rise 0.8s ease-out both; }
+.animate-fade-rise-delay { animation: fade-rise 0.8s ease-out 0.2s both; }
+.animate-fade-rise-delay-2 { animation: fade-rise 0.8s ease-out 0.4s both; }
+
+@utility bg-background { background-color: hsl(var(--background)); }
+@utility text-foreground { color: hsl(var(--foreground)); }
+@utility text-muted-foreground { color: hsl(var(--muted-foreground)); }
+@utility border-border { border-color: hsl(var(--border)); }
+@utility bg-primary { background-color: hsl(var(--primary)); }
+@utility text-primary { color: hsl(var(--primary)); }
+
+/* Scroll Snap */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: auto;
+  height: 100vh;
+  scroll-behavior: smooth;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--muted-foreground)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
