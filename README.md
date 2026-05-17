@@ -150,12 +150,6 @@ OPENAI_API_KEY=your_openai_api_key
 
 ---
 
-## Screenshots
-
-> _Add screenshots of the landing page, dashboard, note editor, and analytics here._
-
----
-
 ## Contact
 For questions or opportunities, reach out via [LinkedIn](https://www.linkedin.com/) or open an issue.
 
