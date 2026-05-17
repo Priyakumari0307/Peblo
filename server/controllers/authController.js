@@ -21,7 +21,11 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please add all fields' });
     }
 
-    const userExists = await User.findOne({ email });
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const userExists = await User.findByEmail(email);
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -39,7 +43,7 @@ const registerUser = async (req, res) => {
         avatar: user.avatar,
         bio: user.bio,
         jobTitle: user.jobTitle,
-        token: generateToken(user._id),
+        token: generateToken(user.id),
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -56,7 +60,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findByEmail(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json({
@@ -66,7 +70,7 @@ const loginUser = async (req, res) => {
         avatar: user.avatar,
         bio: user.bio,
         jobTitle: user.jobTitle,
-        token: generateToken(user._id),
+        token: generateToken(user.id),
       });
     } else {
       res.status(401).json({ message: 'Invalid credentials' });
@@ -80,8 +84,10 @@ const loginUser = async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = async (req, res) => {
-  const user = await User.findById(req.user._id).select('-password');
-  res.status(200).json(user);
+  const user = await User.findById(req.user.id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  const { password, ...userData } = user;
+  res.status(200).json(userData);
 };
 
 // @desc    Update user profile
@@ -89,7 +95,7 @@ const getMe = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const { name, email, bio, jobTitle, avatar, currentPassword, newPassword } = req.body;
@@ -99,38 +105,55 @@ const updateProfile = async (req, res) => {
       if (!currentPassword) {
         return res.status(400).json({ message: 'Current password is required to set a new password' });
       }
-      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      const fullUser = await User.findByEmail(user.email);
+      const isMatch = await bcrypt.compare(currentPassword, fullUser.password);
       if (!isMatch) {
         return res.status(401).json({ message: 'Current password is incorrect' });
       }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      }
       const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(newPassword, salt);
+      const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+      const updatedUser = await User.update(req.user.id, { password: hashedNewPassword });
+      const { password, ...safeData } = updatedUser;
+      return res.json({
+        _id: safeData.id,
+        name: safeData.name,
+        email: safeData.email,
+        avatar: safeData.avatar,
+        bio: safeData.bio,
+        jobTitle: safeData.jobTitle,
+        token: generateToken(safeData.id),
+      });
     }
 
     // Check if new email is already taken by someone else
     if (email && email !== user.email) {
-      const emailExists = await User.findOne({ email });
+      const emailExists = await User.findByEmail(email);
       if (emailExists) {
         return res.status(400).json({ message: 'Email is already in use' });
       }
-      user.email = email;
     }
 
-    if (name !== undefined) user.name = name;
-    if (bio !== undefined) user.bio = bio;
-    if (jobTitle !== undefined) user.jobTitle = jobTitle;
-    if (avatar !== undefined) user.avatar = avatar;
+    // Build fields to update (map camelCase to snake_case for DB)
+    const fields = {};
+    if (name !== undefined) fields.name = name;
+    if (email !== undefined) fields.email = email;
+    if (bio !== undefined) fields.bio = bio;
+    if (jobTitle !== undefined) fields.job_title = jobTitle;
+    if (avatar !== undefined) fields.avatar = avatar;
 
-    const updatedUser = await user.save();
+    const updatedUser = await User.update(req.user.id, fields);
 
     res.json({
-      _id: updatedUser._id,
+      _id: updatedUser.id,
       name: updatedUser.name,
       email: updatedUser.email,
       avatar: updatedUser.avatar,
       bio: updatedUser.bio,
       jobTitle: updatedUser.jobTitle,
-      token: generateToken(updatedUser._id),
+      token: generateToken(updatedUser.id),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -143,19 +166,21 @@ const updateProfile = async (req, res) => {
 const deleteAccount = async (req, res) => {
   try {
     const { password } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
 
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Get full user with password for comparison
+    const fullUser = await User.findByEmail(user.email);
+    const isMatch = await bcrypt.compare(password, fullUser.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Incorrect password' });
     }
 
-    // Delete all notes belonging to the user
-    await Note.deleteMany({ userId: user._id });
+    // Delete all notes belonging to the user (cascade handles this, but explicit is safe)
+    await Note.deleteByUserId(req.user.id);
     // Delete the user
-    await User.findByIdAndDelete(user._id);
+    await User.deleteById(req.user.id);
 
     res.status(200).json({ message: 'Account deleted successfully' });
   } catch (error) {

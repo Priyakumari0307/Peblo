@@ -35,7 +35,7 @@ const useAuthStore = create((set) => ({
       set({ user: userData, token: token, isLoading: false });
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.response?.data?.message || error.message || 'Registration failed';
       set({ error: message, isLoading: false });
       return { success: false, message };
     }

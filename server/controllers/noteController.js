@@ -6,34 +6,7 @@ const Note = require('../models/Note');
 const getNotes = async (req, res) => {
   try {
     const { search, category, tag, sort } = req.query;
-    let query = { userId: req.user._id, isArchived: false };
-
-    // Search functionality (Title and Content)
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Category filtering
-    if (category && category !== 'All') {
-      query.category = category;
-    }
-
-    // Tag filtering
-    if (tag) {
-      query.tags = { $in: [tag] };
-    }
-
-    // Sorting logic
-    let sortOptions = { updatedAt: -1 }; // Default: Latest updated
-    if (sort === 'oldest') sortOptions = { updatedAt: 1 };
-    if (sort === 'alphabetical') sortOptions = { title: 1 };
-    if (sort === 'alphabetical-desc') sortOptions = { title: -1 };
-
-    const notes = await Note.find(query).sort(sortOptions);
+    const notes = await Note.findAll(req.user.id, { search, category, tag, sort });
     res.json(notes);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -45,9 +18,7 @@ const getNotes = async (req, res) => {
 // @access  Private
 const getArchivedNotes = async (req, res) => {
   try {
-    console.log('Fetching archived notes for user:', req.user._id);
-    const notes = await Note.find({ userId: req.user._id, isArchived: true }).sort({ updatedAt: -1 });
-    console.log(`Found ${notes.length} archived notes`);
+    const notes = await Note.findArchived(req.user.id);
     res.json(notes);
   } catch (error) {
     console.error('Error in getArchivedNotes:', error);
@@ -60,7 +31,7 @@ const getArchivedNotes = async (req, res) => {
 // @access  Private
 const getNoteById = async (req, res) => {
   try {
-    const note = await Note.findOne({ _id: req.params.id, userId: req.user._id });
+    const note = await Note.findById(req.params.id, req.user.id);
     if (!note) {
       return res.status(404).json({ message: 'Note not found' });
     }
@@ -78,7 +49,7 @@ const createNote = async (req, res) => {
 
   try {
     const note = await Note.create({
-      userId: req.user._id,
+      userId: req.user.id,
       title: title || 'Untitled Note',
       content: content || '',
       tags: tags || [],
@@ -96,18 +67,30 @@ const createNote = async (req, res) => {
 // @access  Private
 const updateNote = async (req, res) => {
   try {
-    const note = await Note.findOne({ _id: req.params.id, userId: req.user._id });
-
-    if (!note) {
+    const existing = await Note.findById(req.params.id, req.user.id);
+    if (!existing) {
       return res.status(404).json({ message: 'Note not found' });
     }
 
-    const updatedNote = await Note.findByIdAndUpdate(
-      req.params.id,
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
+    // Map camelCase body fields to snake_case for DB
+    const fields = {};
+    const fieldMap = {
+      title: 'title',
+      content: 'content',
+      summary: 'summary',
+      actionItems: 'action_items',
+      suggestedTitle: 'suggested_title',
+      tags: 'tags',
+      category: 'category',
+      isArchived: 'is_archived',
+      isPublic: 'is_public',
+      aiUsageCount: 'ai_usage_count',
+    };
+    for (const [key, dbKey] of Object.entries(fieldMap)) {
+      if (req.body[key] !== undefined) fields[dbKey] = req.body[key];
+    }
 
+    const updatedNote = await Note.update(req.params.id, req.user.id, fields);
     res.json(updatedNote);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -119,13 +102,10 @@ const updateNote = async (req, res) => {
 // @access  Private
 const deleteNote = async (req, res) => {
   try {
-    const note = await Note.findOne({ _id: req.params.id, userId: req.user._id });
-
-    if (!note) {
+    const deleted = await Note.deleteById(req.params.id, req.user.id);
+    if (!deleted) {
       return res.status(404).json({ message: 'Note not found' });
     }
-
-    await note.deleteOne();
     res.json({ message: 'Note removed' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -137,16 +117,14 @@ const deleteNote = async (req, res) => {
 // @access  Private
 const toggleArchive = async (req, res) => {
   try {
-    const note = await Note.findOne({ _id: req.params.id, userId: req.user._id });
+    const note = await Note.findById(req.params.id, req.user.id);
 
     if (!note) {
       return res.status(404).json({ message: 'Note not found' });
     }
 
-    note.isArchived = !note.isArchived;
-    await note.save();
-
-    res.json(note);
+    const updatedNote = await Note.update(req.params.id, req.user.id, { is_archived: !note.isArchived });
+    res.json(updatedNote);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -157,13 +135,15 @@ const toggleArchive = async (req, res) => {
 // @access  Public
 const getPublicNote = async (req, res) => {
   try {
-    const note = await Note.findOne({ shareId: req.params.shareId, isPublic: true })
-      .populate('userId', 'name');
-    
+    const note = await Note.findByShareId(req.params.shareId);
+
     if (!note) {
       return res.status(404).json({ message: 'Note not found or private' });
     }
-    res.json(note);
+    res.json({
+      ...note,
+      userId: { name: note.userName },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -174,16 +154,14 @@ const getPublicNote = async (req, res) => {
 // @access  Private
 const toggleShare = async (req, res) => {
   try {
-    const note = await Note.findOne({ _id: req.params.id, userId: req.user._id });
+    const note = await Note.findById(req.params.id, req.user.id);
 
     if (!note) {
       return res.status(404).json({ message: 'Note not found' });
     }
 
-    note.isPublic = !note.isPublic;
-    await note.save();
-
-    res.json(note);
+    const updatedNote = await Note.update(req.params.id, req.user.id, { is_public: !note.isPublic });
+    res.json(updatedNote);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

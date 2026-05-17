@@ -20,7 +20,7 @@ Backend Link :- https://peblo-wtna.onrender.com/
 - Responsive, modern UI (React + Tailwind CSS)
 - Dark/light theme toggle
 - Secure RESTful API (Node.js + Express)
-- MongoDB cloud database
+- PostgreSQL database
 - Role-based access and sharing
 - Error handling and loading skeletons
 
@@ -29,8 +29,8 @@ Backend Link :- https://peblo-wtna.onrender.com/
 ## Tech Stack
 - **Frontend:** React, Vite, Tailwind CSS, Framer Motion
 - **Backend:** Node.js, Express.js
-- **Database:** MongoDB (Mongoose ODM)
-- **AI Integration:** OpenAI API
+- **Database:** PostgreSQL (pg driver)
+- **AI Integration:** Google Gemini API
 - **State Management:** Zustand
 - **Authentication:** JWT, bcrypt
 
@@ -66,8 +66,8 @@ server/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/peblo-ai-notes.git
-cd peblo-ai-notes
+git clone https://github.com/Priyakumari0307/Peblo.git
+cd Peblo
 ```
 
 ### 2. Install Dependencies
@@ -100,19 +100,23 @@ npm run dev
 
 ---
 
-## 🍃 MongoDB Setup
-- Create a free MongoDB Atlas account: https://www.mongodb.com/cloud/atlas
-- Create a new cluster and database.
-- Get your connection string (e.g., `mongodb+srv://<user>:<password>@cluster.mongodb.net/peblo`)
+## 🐘 PostgreSQL Setup
+- Install PostgreSQL from https://www.postgresql.org/download/
+- Create a database:
+  ```sql
+  CREATE DATABASE peblo;
+  ```
+- Get your connection string (e.g., `postgresql://user:password@localhost:5432/peblo`)
 
 ---
 
 ## Environment Variables
 Create a `.env` file in the `server/` directory:
 ```
-MONGO_URI=your_mongodb_connection_string
+DATABASE_URL=postgresql://user:password@localhost:5432/peblo
 JWT_SECRET=your_jwt_secret
-OPENAI_API_KEY=your_openai_api_key
+GEMINI_API_KEY=your_gemini_api_key
+CLIENT_URL=http://localhost:5173
 ```
 
 ---
@@ -138,9 +142,9 @@ OPENAI_API_KEY=your_openai_api_key
 
 ---
 
-## OpenAI Integration
-- The backend uses the OpenAI API for note suggestions and summarization.
-- Requires an OpenAI API key in your `.env` file.
+## Google Gemini AI Integration
+- The backend uses the Google Gemini API for note summarization, action item extraction, and title suggestions.
+- Requires a Gemini API key in your `.env` file.
 - See `server/controllers/aiController.js` and `server/services/aiService.js` for implementation details.
 
 ---
@@ -159,9 +163,10 @@ OPENAI_API_KEY=your_openai_api_key
    ```
 2. Create a `.env` file in the `server/` directory with production values:
    ```
-   MONGO_URI=your_production_mongodb_connection_string
+   DATABASE_URL=your_postgresql_connection_string
    JWT_SECRET=your_secure_jwt_secret
-   OPENAI_API_KEY=your_openai_api_key
+   GEMINI_API_KEY=your_gemini_api_key
+   CLIENT_URL=https://your-vercel-app.vercel.app
    ```
 
 #### Step 2: Create Render Account & Service
@@ -179,9 +184,11 @@ OPENAI_API_KEY=your_openai_api_key
 #### Step 3: Add Environment Variables
 1. In Render, go to **Environment** → **Add Environment Variable**
 2. Add each variable:
-   - `MONGO_URI` = Your MongoDB connection string
+   - `DATABASE_URL` = Your PostgreSQL connection string
    - `JWT_SECRET` = Your secure JWT secret
-   - `OPENAI_API_KEY` = Your OpenAI API key
+   - `GEMINI_API_KEY` = Your Gemini API key
+   - `CLIENT_URL` = Your Vercel frontend URL
+   - `NODE_ENV` = `production`
 3. Click **"Deploy"**
 
 #### Step 4: Get Backend URL
@@ -193,26 +200,14 @@ OPENAI_API_KEY=your_openai_api_key
 ### Frontend Deployment (Vercel)
 
 #### Step 1: Prepare Frontend for Deployment
-1. Update API base URL in `client/src/services/apiService.js`:
+1. The API base URL is configured via environment variables in `client/src/services/apiService.js`:
    ```javascript
-   const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://peblo-api.onrender.com';
+   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
    ```
 
-2. Create `.env.production` in the `client/` directory:
+2. Create `.env` in the `client/` directory:
    ```
    VITE_API_URL=https://peblo-api.onrender.com
-   ```
-
-3. Update `client/vite.config.js` to use environment variables:
-   ```javascript
-   export default defineConfig({
-     plugins: [react()],
-     server: {
-       proxy: {
-         '/api': process.env.VITE_API_URL || 'http://localhost:5000'
-       }
-     }
-   })
    ```
 
 #### Step 2: Create Vercel Account & Deploy
@@ -260,9 +255,10 @@ OPENAI_API_KEY=your_openai_api_key
 
 | Issue | Solution |
 |-------|----------|
-| Backend won't start | Check environment variables in Render; ensure MongoDB connection string is correct |
+| Backend won't start | Check environment variables in Render; ensure DATABASE_URL is correct and PostgreSQL is running |
 | Frontend shows blank page | Check browser console for errors; verify VITE_API_URL is set correctly |
 | API calls fail | Ensure backend URL is correct in frontend .env; check CORS settings in backend |
+| CORS errors | Ensure CLIENT_URL is set in Render environment variables to match your Vercel URL |
 | Render service spins down | Upgrade to Paid Plan or use a free service like Railway |
 
 ---
@@ -275,8 +271,8 @@ OPENAI_API_KEY=your_openai_api_key
 ## ✅ Deployment Checklist
 
 **Before Deploying:**
-- [ ] MongoDB Atlas cluster created and connection string ready
-- [ ] OpenAI API key obtained
+- [ ] PostgreSQL database created and connection string ready
+- [ ] Google Gemini API key obtained
 - [ ] JWT_SECRET generated (use a secure random string)
 - [ ] GitHub repository is public or Vercel/Render have access
 - [ ] `.env` files created with production values

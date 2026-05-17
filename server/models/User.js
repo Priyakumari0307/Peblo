@@ -1,49 +1,47 @@
-const mongoose = require('mongoose');
+const pool = require('../config/db');
+const { toCamelCase } = require('../utils/helpers');
 
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'Name is required'],
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      unique: true,
-      trim: true,
-      lowercase: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address'],
-    },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
-    },
-    avatar: {
-      type: String,
-      default: null, // Stores base64 data URL
-    },
-    bio: {
-      type: String,
-      default: '',
-      maxlength: [200, 'Bio cannot exceed 200 characters'],
-    },
-    jobTitle: {
-      type: String,
-      default: '',
-      trim: true,
-    },
+const User = {
+  async findById(id) {
+    const { rows } = await pool.query(
+      'SELECT id, name, email, avatar, bio, job_title, created_at, updated_at FROM users WHERE id = $1',
+      [id]
+    );
+    return toCamelCase(rows[0]) || null;
   },
-  {
-    timestamps: true,
-  }
-);
 
-// Index for faster queries on email
-userSchema.index({ email: 1 });
+  async findByEmail(email) {
+    const { rows } = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    return toCamelCase(rows[0]) || null;
+  },
 
-const User = mongoose.model('User', userSchema);
+  async create({ name, email, password }) {
+    const { rows } = await pool.query(
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, avatar, bio, job_title',
+      [name, email, password]
+    );
+    return toCamelCase(rows[0]);
+  },
+
+  async update(id, fields) {
+    const keys = Object.keys(fields);
+    const values = Object.values(fields);
+    if (keys.length === 0) return this.findById(id);
+    const setClause = keys.map((k, i) => `${k} = $${i + 2}`).join(', ');
+    const { rows } = await pool.query(
+      `UPDATE users SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING id, name, email, avatar, bio, job_title`,
+      [id, ...values]
+    );
+    return toCamelCase(rows[0]);
+  },
+
+  async deleteById(id) {
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+  },
+};
 
 module.exports = User;
 
